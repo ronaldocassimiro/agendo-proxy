@@ -947,6 +947,19 @@ def refresh_tasks():
     t.start()
     return jsonify({"status": "started"}), 200
 
+@app.route("/refresh-followup", methods=["POST"])
+def refresh_followup():
+    """Dispara a régua D1->D10 (verificar_followup_dias_silencio) sob
+    demanda, sem esperar o intervalo normal de 3h do scheduler. Útil pra
+    validar uma correção sem precisar aguardar a próxima janela natural.
+    Continua respeitando as checagens internas da função (FOLLOWUP_ATIVOS
+    e o horário de envio 8h-20h BRT) — só antecipa a execução, não ignora
+    as travas de segurança."""
+    t = threading.Thread(target=verificar_followup_dias_silencio_safe)
+    t.daemon = True
+    t.start()
+    return jsonify({"status": "started"}), 200
+
 @app.route("/reset-fetch", methods=["POST"])
 def reset_fetch():
     global fetch_running, fetch_started_at, history_running
